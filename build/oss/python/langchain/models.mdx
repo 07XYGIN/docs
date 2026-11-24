@@ -7,6 +7,8 @@ boost: 2
 
 import ChatModelTabsPy from '/snippets/python/chat-model-tabs.mdx';
 import ChatModelTabsJS from '/snippets/python/chat-model-tabs-js.mdx';
+import ModelsParallelToolCallsPy from '/snippets/python/code-samples/models-parallel-tool-calls-py.mdx';
+import ModelsParallelToolCallsJs from '/snippets/python/code-samples/models-parallel-tool-calls-js.mdx';
 
 [LLMs](https://en.wikipedia.org/wiki/Large_language_model) are powerful AI tools that can interpret and generate text like humans. They're versatile enough to write content, translate languages, summarize, and answer questions without needing specialized training for each task.
 
@@ -126,7 +128,9 @@ model = init_chat_model(
 
 ### Connection resilience
 
-LangChain chat models automatically retry failed API requests with exponential backoff. By default, models retry up to **6 times** for network errors, rate limits (429), and server errors (5xx). Client errors like 401 (unauthorized) or 404 are not retried.
+Most LangChain chat model integrations automatically retry failed API requests with exponential backoff. They retry network errors, rate limits (429), and server errors (5xx). Client errors like 401 (unauthorized) or 404 are not retried.
+
+How many times a model retries by default depends on its integration. For example, `ChatOpenAI` and `ChatAnthropic` retry up to **2 times**, `ChatGoogleGenerativeAI` up to **6 times**, and `ChatOllama` does not retry.
 
 You can adjust `max_retries` and `timeout` when creating a model, then pass that instance to `create_agent`, `create_deep_agent`, or call it standalone:
 
@@ -134,7 +138,7 @@ You can adjust `max_retries` and `timeout` when creating a model, then pass that
 from langchain.chat_models import init_chat_model
 
 model = init_chat_model(
-    "google_genai:gemini-3.6-flash",
+    "google_genai:gemini-4-hydrogen",
     max_retries=10,  # Increase for unreliable networks (default: 6)
     timeout=120,  # Seconds; increase for slow connections
 )
@@ -536,10 +540,11 @@ Below, we show some common ways you can use tool calling.
         The model intelligently determines when parallel execution is appropriate based on the independence of the requested operations.
 
         <Tip>
-        Most models supporting tool calling enable parallel tool calls by default. Some (including [OpenAI](/oss/python/integrations/chat/openai) and [Anthropic](/oss/python/integrations/chat/anthropic)) allow you to disable this feature. To do this, set `parallel_tool_calls=False`:
-        ```python
-        model.bind_tools([get_weather], parallel_tool_calls=False)
-        ```
+        Most models supporting tool calling enable parallel tool calls by default.
+        Some (including [OpenAI](/oss/python/integrations/chat/openai) and [Anthropic](/oss/python/integrations/chat/anthropic)) allow you to disable this feature. To do this, set `parallel_tool_calls=False`:
+        <ModelsParallelToolCallsPy />
+
+
         </Tip>
     </Accordion>
     <Accordion title="Streaming tool calls" icon="rss">
@@ -796,6 +801,8 @@ LangChain detects refusals from OpenAI, Anthropic, and Gemini models. For agents
 <Note>
     Refusal handling requires `langchain-core>=1.7.5`, and `langchain-google-genai>=4.4.3` for Gemini. If you upgrade `langchain-core` to 1.7.5 or later, also upgrade to `langchain-openai>=1.7.4`. Earlier versions raise a generic `ValueError` instead of `OpenAIRefusalError` for Responses API structured output refusals.
 </Note>
+
+
 
 
 ---
@@ -1116,7 +1123,7 @@ To help manage rate limits, chat model integrations accept a `rate_limiter` para
     )
 
     model = init_chat_model(
-        model="gpt-5.5",
+        model="gpt-6.1-sol",
         model_provider="openai",
         rate_limiter=rate_limiter  # [!code highlight]
     )
@@ -1167,7 +1174,7 @@ You can configure a custom base URL for providers that implement the OpenAI Chat
     from langchain_openai import ChatOpenAI
 
     model = ChatOpenAI(
-        model="gpt-5.5",
+        model="gpt-6.1-sol",
         openai_proxy="http://proxy.example.com:8080"
     )
     ```
@@ -1186,7 +1193,7 @@ Certain models can be configured to return token-level log probabilities represe
 
 ```python
 model = init_chat_model(
-    model="gpt-5.5",
+    model="gpt-6.1-sol",
     model_provider="openai"
 ).bind(logprobs=True)
 
@@ -1466,7 +1473,7 @@ from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResp
 
 
 basic_model = ChatOpenAI(model="gpt-5.4-mini")
-advanced_model = ChatOpenAI(model="gpt-5.5")
+advanced_model = ChatOpenAI(model="gpt-6.1-sol")
 
 @wrap_model_call
 def dynamic_model_selection(request: ModelRequest, handler) -> ModelResponse:
